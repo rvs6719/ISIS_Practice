@@ -1,0 +1,39 @@
+ER-модель построена на основе BPMN-процесса защиты данных и включает 8 сущностей.
+Основные сущности:
+    User (Пользователь) — центральная сущность; хранит учётные записи: id (PK), full_name, email (UNIQUE), password_hash, status, created_at. Пароли хранятся только в виде хеша.
+
+    Role (Роль) — группы прав (admin, user, auditor): id (PK), name, description.
+
+    Resource (Ресурс) — объекты, доступ к которым регулируется: id (PK), name, type, access_level.
+
+    Session (Сессия) — активные сеансы пользователя: id (PK), user_id (FK), login_time, ip_address, status.
+
+    LoginAttempt (Попытка входа) — лог аутентификации для защиты от подбора пароля: id (PK), user_id (FK), attempt_time, ip_address, success.
+
+    AuditLog (Журнал аудита) — append-only журнал событий безопасности: id (PK), user_id (FK), session_id (FK), action, result, created_at.
+
+Связующие таблицы (M:N):
+
+    User_Role — связь Пользователь ↔ Роль: user_id (FK), role_id (FK).
+
+    Permission — связь Роль ↔ Ресурс с атрибутом level (read/write/delete/full): role_id (FK), resource_id (FK).
+
+Основные связи:
+
+    User 1:N Session, LoginAttempt, AuditLog
+
+    Session 1:N AuditLog
+
+    User M:N Role (через User_Role)
+
+    Role M:N Resource (через Permission)
+
+Особенности модели:
+
+    Реализована схема RBAC (Role-Based Access Control).
+
+    Модель нормализована до 3НФ, связи M:N реализованы через промежуточные таблицы.
+
+    Пароли хранятся в виде хеша; журнал аудита — только на запись (append-only).
+
+    Модель покрывает все этапы процесса: аутентификацию, авторизацию, аудит доступа.
