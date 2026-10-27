@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Parcel_Final" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.31.1">
+  <bpmn:collaboration id="Collab_1">
+    <bpmn:participant id="Pool_1" name="Почтовый веб-сервис" processRef="Process_1" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_DB" name="База данных" />
+      <bpmn:lane id="Lane_System" name="Система">
+        <bpmn:flowNodeRef>Task_CheckOwnership</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_ParcelOwned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EncryptResponse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckLocked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_IsLocked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VerifyHash</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_PasswordOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AlreadyLocked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GetUser</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DBQuery</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogDenied</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Denied</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogSuccess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_LimitExceeded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogFail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Blocked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BlockAccount</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_User" name="Пользователь">
+        <bpmn:flowNodeRef>Start_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EnterCreds</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestParcel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Success</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowParcel</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_1" name="Открыта страница входа">
+      <bpmn:outgoing>F01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_EnterCreds" name="Ввести логин и пароль">
+      <bpmn:incoming>F01</bpmn:incoming>
+      <bpmn:incoming>Flow_0x838ig</bpmn:incoming>
+      <bpmn:outgoing>F02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_RequestParcel" name="Ввести трек-номер посылки">
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CheckOwnership" name="Проверить, принадлежит ли посылка пользователю">
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gw_ParcelOwned" name="Посылка принадлежит пользователю?">
+      <bpmn:incoming>F18</bpmn:incoming>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+      <bpmn:outgoing>F23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_EncryptResponse" name="Зашифровать ответ (HTTPS/TLS)">
+      <bpmn:incoming>F23</bpmn:incoming>
+      <bpmn:outgoing>F24</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CheckLocked" name="Проверить, не заблокирован ли аккаунт">
+      <bpmn:incoming>F03</bpmn:incoming>
+      <bpmn:outgoing>F04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gw_IsLocked" name="Аккаунт заблокирован?">
+      <bpmn:incoming>F04</bpmn:incoming>
+      <bpmn:outgoing>F05</bpmn:outgoing>
+      <bpmn:outgoing>F06</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_VerifyHash" name="Сравнить введённый пароль с хешем">
+      <bpmn:incoming>F06</bpmn:incoming>
+      <bpmn:outgoing>F07</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gw_PasswordOK" name="Пароль верен?">
+      <bpmn:incoming>F07</bpmn:incoming>
+      <bpmn:outgoing>F08</bpmn:outgoing>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_AlreadyLocked" name="Аккаунт уже заблокирован">
+      <bpmn:incoming>F05</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Success" name="Данные посылки отображены">
+      <bpmn:incoming>F22</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_ShowParcel" name="Посмотреть статус посылки">
+      <bpmn:incoming>F21</bpmn:incoming>
+      <bpmn:outgoing>F22</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="F01" sourceRef="Start_1" targetRef="Task_EnterCreds" />
+    <bpmn:sequenceFlow id="Flow_0x838ig" name="Нет" sourceRef="Gw_LimitExceeded" targetRef="Task_EnterCreds" />
+    <bpmn:sequenceFlow id="F02" sourceRef="Task_EnterCreds" targetRef="Task_GetUser" />
+    <bpmn:sequenceFlow id="F03" sourceRef="Task_GetUser" targetRef="Task_CheckLocked" />
+    <bpmn:sequenceFlow id="F20" sourceRef="Task_LogDenied" targetRef="End_Denied" />
+    <bpmn:sequenceFlow id="F15" sourceRef="Task_CreateSession" targetRef="Task_RequestParcel" />
+    <bpmn:sequenceFlow id="F16" sourceRef="Task_RequestParcel" targetRef="Task_DBQuery" />
+    <bpmn:sequenceFlow id="F17" sourceRef="Task_DBQuery" targetRef="Task_CheckOwnership" />
+    <bpmn:sequenceFlow id="F18" sourceRef="Task_CheckOwnership" targetRef="Gw_ParcelOwned" />
+    <bpmn:sequenceFlow id="F19" name="Нет" sourceRef="Gw_ParcelOwned" targetRef="Task_LogDenied" />
+    <bpmn:sequenceFlow id="F23" name="Да" sourceRef="Gw_ParcelOwned" targetRef="Task_EncryptResponse" />
+    <bpmn:sequenceFlow id="F24" sourceRef="Task_EncryptResponse" targetRef="Task_LogSuccess" />
+    <bpmn:sequenceFlow id="F21" sourceRef="Task_LogSuccess" targetRef="Task_ShowParcel" />
+    <bpmn:sequenceFlow id="F04" sourceRef="Task_CheckLocked" targetRef="Gw_IsLocked" />
+    <bpmn:sequenceFlow id="F05" name="Да" sourceRef="Gw_IsLocked" targetRef="End_AlreadyLocked" />
+    <bpmn:sequenceFlow id="F06" name="Нет" sourceRef="Gw_IsLocked" targetRef="Task_VerifyHash" />
+    <bpmn:sequenceFlow id="F07" sourceRef="Task_VerifyHash" targetRef="Gw_PasswordOK" />
+    <bpmn:sequenceFlow id="F08" name="Да" sourceRef="Gw_PasswordOK" targetRef="Task_CreateSession" />
+    <bpmn:sequenceFlow id="F10" name="Нет" sourceRef="Gw_PasswordOK" targetRef="Task_LogFail" />
+    <bpmn:sequenceFlow id="F11" sourceRef="Task_LogFail" targetRef="Gw_LimitExceeded" />
+    <bpmn:sequenceFlow id="F12" name="Да" sourceRef="Gw_LimitExceeded" targetRef="Task_BlockAccount" />
+    <bpmn:sequenceFlow id="F13" sourceRef="Task_BlockAccount" targetRef="End_Blocked" />
+    <bpmn:sequenceFlow id="F22" sourceRef="Task_ShowParcel" targetRef="End_Success" />
+    <bpmn:serviceTask id="Task_GetUser" name="Получить учётные данные пользователя (хеш пароля, счётчик попыток, блокировка)">
+      <bpmn:incoming>F02</bpmn:incoming>
+      <bpmn:outgoing>F03</bpmn:outgoing>
+      <bpmn:property id="Property_1sdcmn5" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0e70p02">
+        <bpmn:sourceRef>DataStoreReference_15n7314</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1sdcmn5</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_DBQuery" name="Найти посылку по трек-номеру и текущему пользователю">
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+      <bpmn:property id="Property_1hrocni" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_07eaa62">
+        <bpmn:sourceRef>DataStoreReference_1s05f0a</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1hrocni</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_LogDenied" name="Записать в журнал аудита попытку доступа к чужой посылке">
+      <bpmn:incoming>F19</bpmn:incoming>
+      <bpmn:outgoing>F20</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_01rpjj4">
+        <bpmn:targetRef>DataStoreReference_0sooxlg</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CreateSession" name="Создать сессию пользователя">
+      <bpmn:incoming>F08</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0efbis2">
+        <bpmn:targetRef>DataStoreReference_1pewapg</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Denied" name="Доступ запрещён (чужая посылка)">
+      <bpmn:incoming>F20</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_LogSuccess" name="Записать в журнал аудита успешный доступ">
+      <bpmn:incoming>F24</bpmn:incoming>
+      <bpmn:outgoing>F21</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0iq7jc1">
+        <bpmn:targetRef>DataStoreReference_1u64gmq</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:dataStoreReference id="DataStoreReference_1pewapg" />
+    <bpmn:dataStoreReference id="DataStoreReference_1s05f0a" />
+    <bpmn:dataStoreReference id="DataStoreReference_0sooxlg" />
+    <bpmn:dataStoreReference id="DataStoreReference_1u64gmq" />
+    <bpmn:dataStoreReference id="DataStoreReference_15n7314" />
+    <bpmn:exclusiveGateway id="Gw_LimitExceeded" name="Лимит попыток превышен?">
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0x838ig</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_LogFail" name="Зафиксировать неудачную попытку входа">
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1q2mqzr">
+        <bpmn:targetRef>DataStoreReference_151o77o</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:dataStoreReference id="DataStoreReference_151o77o" />
+    <bpmn:endEvent id="End_Blocked" name="Аккаунт заблокирован (превышен лимит)">
+      <bpmn:incoming>F13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_BlockAccount" name="Заблокировать аккаунт на 15 минут">
+      <bpmn:incoming>F12</bpmn:incoming>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1orko9g">
+        <bpmn:targetRef>DataStoreReference_1gt70gw</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:dataStoreReference id="DataStoreReference_1gt70gw" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="Collab_1">
+      <bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="2390" height="750" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_DB_di" bpmnElement="Lane_DB" isHorizontal="true">
+        <dc:Bounds x="190" y="680" width="2360" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="190" y="300" width="2360" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_User_di" bpmnElement="Lane_User" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="2360" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="240" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="215" y="205" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EnterCreds_di" bpmnElement="Task_EnterCreds">
+        <dc:Bounds x="340" y="140" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestParcel_di" bpmnElement="Task_RequestParcel">
+        <dc:Bounds x="1665" y="150" width="110" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckOwnership_di" bpmnElement="Task_CheckOwnership">
+        <dc:Bounds x="1850" y="400" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_ParcelOwned_di" bpmnElement="Gw_ParcelOwned" isMarkerVisible="true">
+        <dc:Bounds x="2030" y="415" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2000" y="370" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EncryptResponse_di" bpmnElement="Task_EncryptResponse">
+        <dc:Bounds x="2140" y="400" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckLocked_di" bpmnElement="Task_CheckLocked">
+        <dc:Bounds x="510" y="460" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_IsLocked_di" bpmnElement="Gw_IsLocked" isMarkerVisible="true">
+        <dc:Bounds x="685" y="475" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="665" y="532" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifyHash_di" bpmnElement="Task_VerifyHash">
+        <dc:Bounds x="850" y="460" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_PasswordOK_di" bpmnElement="Gw_PasswordOK" isMarkerVisible="true">
+        <dc:Bounds x="1025" y="475" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1005" y="535" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AlreadyLocked_di" bpmnElement="End_AlreadyLocked">
+        <dc:Bounds x="772" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="742" y="366" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Success_di" bpmnElement="End_Success">
+        <dc:Bounds x="2482" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2457" y="215" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ShowParcel_di" bpmnElement="Task_ShowParcel">
+        <dc:Bounds x="2300" y="150" width="110" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GetUser_di" bpmnElement="Task_GetUser">
+        <dc:Bounds x="510" y="580" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DBQuery_di" bpmnElement="Task_DBQuery">
+        <dc:Bounds x="1765" y="580" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogDenied_di" bpmnElement="Task_LogDenied">
+        <dc:Bounds x="2000" y="580" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateSession_di" bpmnElement="Task_CreateSession">
+        <dc:Bounds x="1585" y="580" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Denied_di" bpmnElement="End_Denied">
+        <dc:Bounds x="2172" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2145" y="564.5" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogSuccess_di" bpmnElement="Task_LogSuccess">
+        <dc:Bounds x="2300" y="580" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1pewapg_di" bpmnElement="DataStoreReference_1pewapg">
+        <dc:Bounds x="1615" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1s05f0a_di" bpmnElement="DataStoreReference_1s05f0a">
+        <dc:Bounds x="1795" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_0sooxlg_di" bpmnElement="DataStoreReference_0sooxlg">
+        <dc:Bounds x="2030" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1u64gmq_di" bpmnElement="DataStoreReference_1u64gmq">
+        <dc:Bounds x="2330" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_15n7314_di" bpmnElement="DataStoreReference_15n7314">
+        <dc:Bounds x="540" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_LimitExceeded_di" bpmnElement="Gw_LimitExceeded" isMarkerVisible="true">
+        <dc:Bounds x="1395" y="335" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1370" y="306" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogFail_di" bpmnElement="Task_LogFail">
+        <dc:Bounds x="1155" y="380" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_151o77o_di" bpmnElement="DataStoreReference_151o77o">
+        <dc:Bounds x="1185" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Blocked_di" bpmnElement="End_Blocked">
+        <dc:Bounds x="1652" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1625" y="383.5" width="90" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BlockAccount_di" bpmnElement="Task_BlockAccount">
+        <dc:Bounds x="1495" y="320" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1gt70gw_di" bpmnElement="DataStoreReference_1gt70gw">
+        <dc:Bounds x="1525" y="735" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F01_di" bpmnElement="F01">
+        <di:waypoint x="276" y="180" />
+        <di:waypoint x="340" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0x838ig_di" bpmnElement="Flow_0x838ig">
+        <di:waypoint x="1395" y="360" />
+        <di:waypoint x="440" y="360" />
+        <di:waypoint x="440" y="220" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1342" y="342" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F02_di" bpmnElement="F02">
+        <di:waypoint x="395" y="220" />
+        <di:waypoint x="395" y="620" />
+        <di:waypoint x="510" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F03_di" bpmnElement="F03">
+        <di:waypoint x="565" y="580" />
+        <di:waypoint x="565" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F20_di" bpmnElement="F20">
+        <di:waypoint x="2110" y="620" />
+        <di:waypoint x="2172" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="1695" y="620" />
+        <di:waypoint x="1720" y="620" />
+        <di:waypoint x="1720" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="1775" y="190" />
+        <di:waypoint x="1820" y="190" />
+        <di:waypoint x="1820" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="1875" y="620" />
+        <di:waypoint x="1905" y="620" />
+        <di:waypoint x="1905" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="1960" y="440" />
+        <di:waypoint x="2030" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F19_di" bpmnElement="F19">
+        <di:waypoint x="2055" y="465" />
+        <di:waypoint x="2055" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2060" y="465" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F23_di" bpmnElement="F23">
+        <di:waypoint x="2080" y="440" />
+        <di:waypoint x="2140" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2100" y="415" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F24_di" bpmnElement="F24">
+        <di:waypoint x="2250" y="440" />
+        <di:waypoint x="2330" y="440" />
+        <di:waypoint x="2330" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F21_di" bpmnElement="F21">
+        <di:waypoint x="2355" y="580" />
+        <di:waypoint x="2355" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04_di" bpmnElement="F04">
+        <di:waypoint x="620" y="500" />
+        <di:waypoint x="685" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F05_di" bpmnElement="F05">
+        <di:waypoint x="710" y="475" />
+        <di:waypoint x="710" y="420" />
+        <di:waypoint x="772" y="420" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="720" y="403" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F06_di" bpmnElement="F06">
+        <di:waypoint x="735" y="500" />
+        <di:waypoint x="850" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="770" y="483" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F07_di" bpmnElement="F07">
+        <di:waypoint x="960" y="500" />
+        <di:waypoint x="1025" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F08_di" bpmnElement="F08">
+        <di:waypoint x="1075" y="500" />
+        <di:waypoint x="1640" y="500" />
+        <di:waypoint x="1640" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1099" y="483" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="1050" y="475" />
+        <di:waypoint x="1050" y="420" />
+        <di:waypoint x="1155" y="420" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1025" y="459" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="1265" y="420" />
+        <di:waypoint x="1420" y="420" />
+        <di:waypoint x="1420" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="1445" y="360" />
+        <di:waypoint x="1495" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1463" y="342" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="1605" y="360" />
+        <di:waypoint x="1652" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F22_di" bpmnElement="F22">
+        <di:waypoint x="2410" y="190" />
+        <di:waypoint x="2482" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1q2mqzr_di" bpmnElement="DataOutputAssociation_1q2mqzr">
+        <di:waypoint x="1210" y="460" />
+        <di:waypoint x="1210" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1orko9g_di" bpmnElement="DataOutputAssociation_1orko9g">
+        <di:waypoint x="1550" y="400" />
+        <di:waypoint x="1550" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0efbis2_di" bpmnElement="DataOutputAssociation_0efbis2">
+        <di:waypoint x="1640" y="660" />
+        <di:waypoint x="1640" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_01rpjj4_di" bpmnElement="DataOutputAssociation_01rpjj4">
+        <di:waypoint x="2055" y="660" />
+        <di:waypoint x="2057" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0iq7jc1_di" bpmnElement="DataOutputAssociation_0iq7jc1">
+        <di:waypoint x="2356" y="660" />
+        <di:waypoint x="2359" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0e70p02_di" bpmnElement="DataInputAssociation_0e70p02">
+        <di:waypoint x="565" y="735" />
+        <di:waypoint x="565" y="660" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_07eaa62_di" bpmnElement="DataInputAssociation_07eaa62">
+        <di:waypoint x="1820" y="735" />
+        <di:waypoint x="1820" y="660" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
